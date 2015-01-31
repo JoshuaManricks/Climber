@@ -5,7 +5,9 @@ public class GameManager : MonoBehaviour {
 
 	public Maze mazePrefab;
 
-	public Player playerPrefab;
+	public CameraType cameraType;
+	public Player OVRCam;
+	public Player standCam;
 
 	private Maze mazeInstance;
 
@@ -27,11 +29,23 @@ public class GameManager : MonoBehaviour {
 		mazeInstance = Instantiate(mazePrefab) as Maze;
 		yield return StartCoroutine(mazeInstance.Generate());
 
-		playerInstance = Instantiate(playerPrefab) as Player;
+		if (cameraType == CameraType.OVR) playerInstance = Instantiate(OVRCam) as Player;
+		else playerInstance = Instantiate(standCam) as Player;
+		
 		playerInstance.SetLocation(mazeInstance.GetCell(mazeInstance.RandomCoordinates));
 
 //		Camera.main.clearFlags = CameraClearFlags.Depth;
 //		Camera.main.rect = new Rect(0f, 0f, 0.5f, 0.5f);
+
+
+		UpdateRenderSettings ();
+	}
+
+	private void UpdateRenderSettings () {
+		if (cameraType == CameraType.OVR) {
+			float col = 4/255;
+			RenderSettings.ambientLight = new Color(col,col,col);
+		}
 	}
 
 	private void RestartGame () {

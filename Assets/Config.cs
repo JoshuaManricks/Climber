@@ -21,3 +21,4 @@ public class Config : MonoBehaviour {
 //public enum DelayType { Timed, EnemyDestoyCount};
 
 public enum TileType { Straight, Left, Right, T, DeadEnd};
+public enum CameraType { Standard, OVR};
