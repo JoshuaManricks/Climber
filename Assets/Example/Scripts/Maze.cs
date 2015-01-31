@@ -29,16 +29,29 @@ public class Maze : MonoBehaviour {
 
 	private List<MazeRoom> rooms = new List<MazeRoom>();
 
+	/// <summary>
+	/// Gets the random coordinates.
+	/// </summary>
+	/// <value>The random coordinates.</value>
 	public IntVector2 RandomCoordinates {
 		get {
 			return new IntVector2(Random.Range(0, size.x), Random.Range(0, size.z));
 		}
 	}
-
+	/// <summary>
+	/// Containses the coordinates.
+	/// </summary>
+	/// <returns><c>true</c>, if coordinates was containsed, <c>false</c> otherwise.</returns>
+	/// <param name="coordinate">Coordinate.</param>
 	public bool ContainsCoordinates (IntVector2 coordinate) {
 		return coordinate.x >= 0 && coordinate.x < size.x && coordinate.z >= 0 && coordinate.z < size.z;
 	}
 
+	/// <summary>
+	/// Gets the cell.
+	/// </summary>
+	/// <returns>The cell.</returns>
+	/// <param name="coordinates">Coordinates.</param>
 	public MazeCell GetCell (IntVector2 coordinates) {
 		return cells[coordinates.x, coordinates.z];
 	}
@@ -50,9 +63,8 @@ public class Maze : MonoBehaviour {
 		List<MazeCell> activeCells = new List<MazeCell>();
 		DoFirstGenerationStep(activeCells);
 
-
 		while (activeCells.Count > 0) {
-
+//			yield return null;
 			DoNextGenerationStep(activeCells);
 		}
 //		for (int i = 0; i < rooms.Count; i++) {
@@ -62,7 +74,11 @@ public class Maze : MonoBehaviour {
 	}
 
 	private void DoFirstGenerationStep (List<MazeCell> activeCells) {
-		MazeCell newCell = CreateCell(RandomCoordinates);
+
+		//set the start point to be at a random position on an edge
+		IntVector2 startPos = new IntVector2 (Mathf.FloorToInt((size.x * Random.value)), 0);
+
+		MazeCell newCell = CreateCell(startPos);
 		newCell.Initialize(CreateRoom(-1));
 		activeCells.Add(newCell);
 	}
@@ -71,6 +87,9 @@ public class Maze : MonoBehaviour {
 		int currentIndex = activeCells.Count - 1;
 		MazeCell currentCell = activeCells[currentIndex];
 		if (currentCell.IsFullyInitialized) {
+			
+			
+			AddTreasure (currentCell);
 			activeCells.RemoveAt(currentIndex);
 			return;
 		}
@@ -93,6 +112,25 @@ public class Maze : MonoBehaviour {
 		else {
 			CreateWall(currentCell, null, direction);
 		}
+	}
+
+	public float treasureRate = 0.5f;
+	public GameObject treasure;
+	Vector3 tPos = new Vector3(0,0.01f,0);
+	private void AddTreasure (MazeCell currentCell) {
+
+		if (Random.value > treasureRate) {
+			//instiate new treasure
+			GameObject t = Instantiate(treasure) as GameObject;
+			//add to cell
+			t.transform.parent = currentCell.gameObject.transform;
+			t.transform.localPosition = tPos;//Vector3.zero;
+
+			Debug.Log ("ADD TREASURE "+t.transform.position);
+		}
+
+
+
 	}
 
 	private MazeCell CreateCell (IntVector2 coordinates) {
@@ -133,9 +171,12 @@ public class Maze : MonoBehaviour {
 		}
 	}
 
+
 	private void CreateWall (MazeCell cell, MazeCell otherCell, MazeDirection direction) {
+
 		MazeWall wall = Instantiate(wallPrefabs[Random.Range(0, wallPrefabs.Length)]) as MazeWall;
 		wall.Initialize(cell, otherCell, direction);
+
 		if (otherCell != null) {
 			wall = Instantiate(wallPrefabs[Random.Range(0, wallPrefabs.Length)]) as MazeWall;
 			wall.Initialize(otherCell, cell, direction.GetOpposite());
